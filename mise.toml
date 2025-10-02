@@ -1,0 +1,63 @@
+[settings]
+experimental = true
+idiomatic_version_file_enable_tools = ["rust"]
+
+[settings.python]
+default_packages_file = "base-requirements.txt"
+
+[tools]
+# we can activate once 3.14 is officially released
+# python = { version = "3.14" }
+typst = "0.14.2"
+
+
+[env]
+# _.python.venv = { path = "venv", create = true, python = "3.14" } # use a specific python version
+TYPST_ROOT="{{ config_root }}"
+TYPST_FONT_PATHS="{{ config_root }}/resources/fonts/"
+TENSORBOARD_LOG_DIR="{{ config_root }}/out/tensorboard-logs"
+PLAGIARISM_THRESHOLD="0.93"
+
+[tasks."fix:rust"]
+run = "cargo clippy --fix"
+
+[tasks."fmt:rust"]
+run = "cargo fmt --all"
+
+[tasks."run:genetic_evolution"]
+dir = "{{ config_root }}"
+run = "cargo run --release --manifest-path scripts/radiate_config_optimizer/Cargo.toml"
+
+[tasks."dl:train"]
+dir = "{{ config_root }}"
+run = "cargo run --release --package graph_deeplearning --bin graph_deeplearning"
+
+[tasks."build:graph_inference"]
+dir = "{{ config_root }}"
+run = "cargo build --release --package graph_deeplearning --bin run_inference"
+
+[tasks."dl:validate"]
+dir = "{{ config_root }}"
+run = "cargo run --release --package graph_deeplearning --bin run_validation"
+
+[tasks."dl:print_model"]
+dir = "{{ config_root }}"
+run = "cargo run --release --package decider-model --bin print_model"
+
+[tasks."dl:inference"]
+dir = "{{ config_root }}"
+raw = true
+raw_args = true
+run = "cargo run --release --package graph_deeplearning --bin run_inference"
+
+[tasks."annembed:export"]
+dir = "{{ config_root }}"
+run = "cargo run --release --package annembed_export"
+
+[tasks."run:tensorboard"]
+description = "Run TensorBoard to visualize the training progress"
+tools."pipx:tensorboard" = "latest"
+dir = "{{ config_root }}"
+raw = true
+raw_args = true
+run = "tensorboard --bind_all --logdir {{ env.TENSORBOARD_LOG_DIR }}"
